@@ -1,0 +1,199 @@
+<html lang="ja">
+    <head>
+        <title>Visualizer</title>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    </head>
+    <body>
+        使い方
+        <details>
+          <p>
+            自分用のgif encoderです。(Topcoder Marathon Match のビジュアライザをgifにするために作った。)<br>
+            Inputで選択したフォルダが辞書順に表示されます。<br>
+            canvasに描画できないやつ(.txtなど)は勝手に無視されます。<br>
+            ファイルサイズを小さくしたいときはskipでnを指定すれば最初と最後とn個ごとにサンプリングされたものだけがgifになります。<br>
+            自分のChromeでは動きました。<br>
+            AHCのWebビジュアライザをパクってます。ありがたい<br>
+          </p>
+        </details>
+        <p>
+            Input: <input id="file" type="file" name="upfile[]" webkitdirectory>
+        </p>
+        <p style="display:flex;">
+            <input type="button" id="play" value="▶" style="width:32px;height:32px;bottom:5px;position:relative;">&ensp;
+            <label>
+                slow
+                <input type="range" id="speed" min="1" max="60" value="30" style="width:200px;">
+                fast&emsp;
+            </label>
+            <label>
+                turn:
+                <input type="number" id="turn" value="0" min="0" max="0" style="width:70px;text-align:right;" onchange="update_t(this.value)"/>
+            </label>
+            &ensp;&ensp;
+            <label>
+                skip:
+                <input type="number" id="skip" value="1" min="1" max="1" style="width:70px;text-align:right;">
+            </label>
+            &ensp;&ensp;
+            <input type="button" id="save_gif" value="Save as Animation GIF">&ensp;
+        </p>
+        <p>
+            <input type="range" id="t_bar" min="0" max="0" value="0" style="width:780px;" onchange="update_t(this.value)" oninput="update_t(this.value)">
+        </p>
+        <hr>
+        <img id="result">
+        <script src="gif.js"></script>
+        <script>
+            let MAX_TURN = 0;
+            let images = [];
+
+            function change_max_turn(t) {
+                MAX_TURN=t-1;
+                document.getElementById("t_bar").max = MAX_TURN-1;
+                document.getElementById("turn").max = MAX_TURN-1;
+                document.getElementById("skip").max = MAX_TURN-1;
+            }
+
+            function vis_image(canvas, t) {
+                let reader = new FileReader();
+                reader.addEventListener("load", ()=>{
+                    canvas.src=reader.result;
+                }, false);
+                reader.readAsDataURL(images[t]);
+            }
+
+            document.getElementById("file").addEventListener("change", function(event) {
+                files = Array.from(event.target.files);
+                images = [];
+                for(let i=0;i<files.length;++i){
+                    let ext = files[i].webkitRelativePath.substring(files[i].webkitRelativePath.lastIndexOf('.') + 1).toLowerCase();
+                    if (ext === 'png' || ext === 'svg' || ext === 'jpeg') {
+                        images.push(files[i]);
+                    }
+                }
+                change_max_turn(images.length);
+
+                images.sort(function(a, b) {
+                    return a.webkitRelativePath.localeCompare(b.webkitRelativePath);
+                });
+
+                if (images.length>0){
+                    update_t(0);
+                }
+            });
+            
+            function update_t(t) {
+                const new_turn = Math.min(Math.max(0, t), MAX_TURN);
+                document.getElementById("turn").value = new_turn;
+                document.getElementById("t_bar").value = new_turn;
+                vis_image(document.getElementById("result"),new_turn);
+            }
+
+            document.addEventListener("keydown", function(event) {
+                if (event.key === "ArrowLeft") {
+                    event.preventDefault();
+                    let t_bar=document.getElementById("t_bar");
+                    t_bar.stepDown();
+                    update_t(t_bar.value);
+                }
+                else if (event.key === "ArrowRight") {
+                    event.preventDefault();
+                    let t_bar=document.getElementById("t_bar");
+                    t_bar.stepUp();
+                    update_t(t_bar.value);
+                }
+            });
+
+            let prev = Date.now();
+            const play = document.getElementById("play");
+            const speed = document.getElementById("speed");
+            
+            function start_autoplay() {
+                if (Number(document.getElementById("turn").value) >= Number(document.getElementById("turn").max)) {
+                    document.getElementById("turn").value = 0;
+                }
+                prev = Date.now();
+                play.value = "■";
+                update_t(document.getElementById("turn").value);
+                autoplay();
+            }
+            
+            play.onclick = event => {
+                if (play.value == "■") {
+                    play.value = "▶";
+                }
+                else {
+                    start_autoplay();
+                }
+            }
+            
+            function autoplay() {
+                if (play.value == "■") {
+                    const now = Date.now();
+                    let s = 4000;
+                    if ((now - prev) * speed.value >= s) {
+                        const inc = Math.floor((now - prev) * speed.value / s);
+                        prev += Math.floor(inc * s / speed.value);
+                        let next = Number(document.getElementById("turn").value) + inc + Number(document.getElementById("skip").value);
+                        update_t(Math.min(next,document.getElementById("turn").max));
+                        if (Number(document.getElementById("turn").value) >= Number(document.getElementById("turn").max)) {
+                            play.value = "▶";
+                        }
+                    }
+                }
+                requestAnimationFrame(autoplay);
+            }
+            
+            const save_gif = document.getElementById("save_gif");
+            save_gif.onclick = event => {
+                save_gif.disabled = true;
+                save_gif.value = "Generating GIF...";
+                const delay = 4000 / speed.value;
+                const gif = new GIF({
+                    workers: 2,
+                    quality: 10,
+                });
+                gif.on("progress", function(p) {
+                    save_gif.value = String(Math.round(50 + 50 * p)).padStart(3, " ") + "% finished";
+                });
+
+                function add_frame(t) {
+                    save_gif.value = String(Math.round(50.0 * t / MAX_TURN)).padStart(3, " ") + "% finished";
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d",{willReadFrequently: true});
+                    const image = new Image;
+                    image.onload = function() {
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+                        ctx.drawImage(image, 0, 0);
+                        if (t == MAX_TURN) {
+                            gif.addFrame(canvas, {delay: 3000});
+                        }
+                        else {
+                            gif.addFrame(canvas, {delay: delay});
+                        }
+                        if (t < MAX_TURN) {
+                            add_frame(Math.min(t + Number(document.getElementById("skip").value), MAX_TURN));
+                        }
+                        else {
+                            gif.on('finished', function(blob) {
+                                const a = document.createElement("a");
+                                a.href = URL.createObjectURL(blob);
+                                a.download = "vis.gif";
+                                a.click();
+                                window.URL.revokeObjectURL(a.href);
+                                save_gif.value = "Save as Animation GIF";
+                                save_gif.disabled = false;
+                            });
+                            gif.render();
+                        }
+                    }
+
+                    vis_image(image,t);
+                }
+
+                add_frame(1);
+            }
+        </script>
+    </body>
+</html>
