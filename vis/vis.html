@@ -134,7 +134,7 @@
                     if ((now - prev) * speed.value >= s) {
                         const inc = Math.floor((now - prev) * speed.value / s);
                         prev += Math.floor(inc * s / speed.value);
-                        let next = Number(document.getElementById("turn").value) + inc + Number(document.getElementById("skip").value);
+                        let next = Number(document.getElementById("turn").value) + inc;
                         update_t(Math.min(next,document.getElementById("turn").max));
                         if (Number(document.getElementById("turn").value) >= Number(document.getElementById("turn").max)) {
                             play.value = "▶";
