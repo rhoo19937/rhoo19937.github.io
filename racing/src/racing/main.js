@@ -2,7 +2,7 @@ let fps = 60;
 let step = 1 / fps;
 let width = 1024; // 画面の解像度
 let height = 768;
-let centrifugal = 0.015;
+let centrifugal = 0.009;
 let skySpeed = 0.001;
 let hillSpeed = 0.002;
 let treeSpeed = 0.003;
@@ -20,15 +20,15 @@ let breaking = -maxSpeed / 5;
 let decel = -maxSpeed / 5;
 let offRoadDecel = -maxSpeed / 2;
 let offRoadLimit = maxSpeed / 4;
-let maxRotateLevel = 1;
 let speedDecreaseRatio = 0.75;
+let playerTurnEase = 1.5;
 let cameraDepth = 1 / Math.tan((fieldOfView / 2) * Math.PI / 180);
 let playerZ = cameraHeight * cameraDepth;
 
 
 
 let stageNum = S.length;
-let defaultStage = 0;
+let defaultStage = 1;
 let dummy_ctx = Dom.get('dummy').getContext('2d');
 
 
@@ -375,8 +375,8 @@ function updatePlayer(dt, P) {
         P.rotateLevel += 1;
     }
 
-    P.rotateLevel = Util.limit(P.rotateLevel, -maxRotateLevel, maxRotateLevel);
-    P.playerX += dx * P.rotateLevel / maxRotateLevel;
+    P.rotateLevel = Util.limit(P.rotateLevel, -1, 1);
+    P.playerX += dx * playerTurnEase * P.rotateLevel;
 
     let nowCentrifugal = (!is_gaming ? 0 : centrifugal);
 
@@ -1039,7 +1039,7 @@ function constructRoad1() {
     addStraight();
     addSCurves();
     addBumps();
-    addCurve(ROAD.LENGTH.LONG * 2, ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
+    addCurve(ROAD.LENGTH.LONG , ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
     addBumps();
     addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
     addSCurves();
