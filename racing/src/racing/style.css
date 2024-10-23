@@ -1,0 +1,38 @@
+@font-face {
+    font-family: 'bitfont';
+    src: url('font/PressStart2P.ttf') format('truetype');
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+canvas{
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    -webkit-transform-origin: 0% 0%;
+    transform-origin: 0% 0%;
+}
+
+#racer0 {
+    z-index: 0;
+    margin-left: 0em;
+    margin-top: 2em;
+}
+
+#racer1 {
+    z-index: 0;
+    margin-left: 4em;
+    margin-top: 2em;
+}
+
+.marker {
+    top: 0px;
+    left: 0px;
+    background: red;
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-radius: 7px;
+}

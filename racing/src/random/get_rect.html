@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        #canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+        }
+        #selection {
+            border: 1px dashed red;
+            position: absolute;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="selection"></div>
+
+<script>
+    alert('Enter: 長方形を確定して名前を決める, f: jsonとしてコピーされる')
+    
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const selectionDiv = document.getElementById('selection');
+    const confirmBtn = document.getElementById('confirm');
+    const copyBtn = document.getElementById('copyJson');
+    const nameInput = document.getElementById('name');
+    let startX, startY, endX, endY;
+    let isSelecting = false;
+    let selections = {};
+
+    const img = new Image();
+    img.src = 'img.png';
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+    };
+
+    document.addEventListener('mousedown', (e) => {
+        startX = e.pageX - 8;
+        startY = e.pageY - 8;
+        isSelecting = true;
+
+        selectionDiv.style.left = `${startX + 8}px`;
+        selectionDiv.style.top = `${startY + 8}px`;
+        selectionDiv.style.width = '0px';
+        selectionDiv.style.height = '0px';
+        selectionDiv.style.display = 'block';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isSelecting) {
+            endX = e.pageX - 8;
+            endY = e.pageY - 8;
+            const width = endX - startX;
+            const height = endY - startY;
+            
+            selectionDiv.style.left = `${(width < 0 ? endX : startX) + 8}px`;
+            selectionDiv.style.top = `${(height < 0 ? endY : startY) + 8}px`;
+            selectionDiv.style.width = `${Math.abs(width)}px`;
+            selectionDiv.style.height = `${Math.abs(height)}px`;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isSelecting = false;
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key == 'Enter') {
+            let name = window.prompt("","");
+            const x = Math.min(startX, endX);
+            const y = Math.min(startY, endY);
+            const w = Math.abs(startX - endX);
+            const h = Math.abs(startY - endY);
+
+            if (w > 0 && h > 0) {
+                selections[name] = { x: x, y: y, w: w, h: h };
+            } else {
+                alert('有効な選択範囲ではありません');
+            }
+            selectionDiv.style.display = 'none';
+        } else if (e.key == 'f'){
+            const jsonString = JSON.stringify(selections, null, 2).replace(/"/g, '');
+            navigator.clipboard.writeText(jsonString).then(() => {
+                alert('JSONがコピーされました: ' + jsonString);
+            }).catch(err => {
+                console.error('コピーに失敗しました', err);
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

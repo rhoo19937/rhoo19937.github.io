@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title></title>
+<style>
+    .marker {
+        top: 0px;
+        left: 0px;
+        background: red;
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border-radius: 7px;
+    }
+
+    #content {
+        -webkit-transform-origin: 0% 0%;
+        -ms-transform-origin: 0% 0%;
+        -o-transform-origin: 0% 0%;
+        -moz-transform-origin: 0% 0%;
+        transform-origin: 0% 0%;
+        border: 1px solid black;
+    }
+</style>
+</head>
+<body>
+<p>注意: ページの拡大縮小をやるとバグる</p>
+<div id="container">
+    <img id="content" src="img.png">
+    <div class="marker" id="marker1"></div>
+    <div class="marker" id="marker2"></div>
+    <div class="marker" id="marker3"></div>
+    <div class="marker" id="marker4"></div>
+</div>
+
+<script type="text/javascript" src="../lib/jquery-1.7.2.min.js"> </script>
+<script type="text/javascript" src="../lib/jquery-ui-1.8.21.custom.min.js"> </script>
+<script type="text/javascript" src="../lib/raphael-min.js"></script>
+<script type="text/javascript" src="../lib/sylvester-min.js"></script>
+<script>
+    $(function() {
+    function refresh() {
+        let i, M = [], V = [];
+        let x, y, X, Y;
+        for(i=0;i<4;i++) {
+            x = origin[i][0];
+            y = origin[i][1];
+            X = markers[i].x() - imgx;
+            Y = markers[i].y() - imgy;
+            console.log('' + i + ':' + X + ',' + Y);
+            M.push([x, y, 1, 0, 0, 0, -x*X, -y*X]);
+            M.push([0, 0, 0, x, y, 1, -x*Y, -y*Y]);
+            V.push(X);
+            V.push(Y);
+        }
+
+        let ans = $M(M).inv().x($V(V));
+        let transform = "perspective(1px)scaleZ(-1)translateZ(-1px)matrix3d(" +
+            ans.e(1) + ',' + ans.e(4) + ',' + ans.e(7) + ',0,' +
+            ans.e(2) + ',' + ans.e(5) + ',' + ans.e(8) + ',0,' +
+            ans.e(3) + ',' + ans.e(6) + ',1,0,' +
+            '0,0,0,1)translateZ(1px)';
+        img.css('-webkit-transform', transform);
+    }
+
+    function Marker(elem, func) {
+        elem = $(elem);
+        this.elem = elem;
+        elem.draggable({
+            drag: func || refresh
+        });
+    }
+    Marker.prototype.x = function(x) {
+        let e = this.elem;
+        if(x) {
+            e.css('left', '' + x + 'px');
+            return this;
+        } else {
+            return e.position().left + e.width()/2;
+        }
+    };
+    Marker.prototype.y = function(y) {
+        let e = this.elem;
+        if(y) {
+            e.css('top', '' + y + 'px');
+            return this;
+        } else {
+            return e.position().top + e.height()/2;
+        }
+    };
+    let markers = [
+        new Marker('#marker1'),
+        new Marker('#marker2'),
+        new Marker('#marker3'),
+        new Marker('#marker4')
+    ];
+    let img = $('#content');
+    let imgx = img.position().left;
+    let imgy = img.position().top;
+    let imgwidth = img.width();
+    let imgheight = img.height();
+    console.log(imgwidth, imgheight);
+    markers[0].x(imgx).y(imgy);
+    markers[1].x(imgx + imgwidth).y(imgy);
+    markers[2].x(imgx + imgwidth).y(imgy + imgheight);
+    markers[3].x(imgx).y(imgy + imgheight);
+
+    let origin = [
+        [0, 0],
+        [imgwidth, 0],
+        [imgwidth, imgheight],
+        [0, imgheight]
+    ];
+    refresh();
+});
+</script>
+
+</body>
+</html>

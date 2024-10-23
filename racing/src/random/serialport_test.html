@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>serialport</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="dataDisplay"></div>
+
+    <script>
+        const socket = io();
+
+        socket.on('receiveData', (data) => {
+            const display = document.getElementById('dataDisplay');
+            display.innerHTML += `<p>${data}</p>`;
+        });
+    </script>
+</body>
+</html>

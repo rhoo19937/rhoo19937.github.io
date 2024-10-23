@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Racing Game</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <table>
+        <tr>
+            <td>
+                <div id="racer0">
+                    <canvas id="game0"></canvas>
+                    <div class="marker" id="marker0-0"></div>
+                    <div class="marker" id="marker0-1"></div>
+                    <div class="marker" id="marker0-2"></div>
+                    <div class="marker" id="marker0-3"></div>
+                </div>
+            </td>
+            <td>
+                <div id="racer1">
+                    <canvas id="game1"></canvas>
+                    <div class="marker" id="marker1-0"></div>
+                    <div class="marker" id="marker1-1"></div>
+                    <div class="marker" id="marker1-2"></div>
+                    <div class="marker" id="marker1-3"></div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <br>
+    <br>
+    <p>
+        WASD: 左プレイヤーの操作&emsp;IJKL,右クリック,左クリック: 右プレイヤーの操作&emsp;Enter: ゲームスタート&emsp;Q: 一時停止&emsp;N: ニューゲーム<br>
+        G: 画面変形モード&emsp;R: 画面反転(画面変形モードのときのみ)&emsp;赤い丸をドラッグ: 画面変形&emsp;B: 背景の色を変える<br>
+        &lt;&gt;: ステージ変更
+    </p>
+
+    <canvas id="dummy"></canvas>
+    
+    <script src="../lib/jquery-1.7.2.min.js"> </script>
+    <script src="../lib/jquery-ui-1.8.21.custom.min.js"> </script>
+    <script src="../lib/raphael-min.js"></script>
+    <script src="../lib/sylvester-min.js"></script>
+    <script src="lib.js"></script>
+    <script src="settings.js"></script>
+    
+    <script src="main.js"></script>
+    <script src="homography.js"></script>
+</body>
+</html>
