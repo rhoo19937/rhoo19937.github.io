@@ -2,7 +2,7 @@ let fps = 60;
 let step = 1 / fps;
 let width = 1024; // 画面の解像度
 let height = 768;
-let centrifugal = 0.01;
+let centrifugal = 0.015;
 let skySpeed = 0.001;
 let hillSpeed = 0.002;
 let treeSpeed = 0.003;
@@ -359,9 +359,11 @@ function updatePlayer(dt, P) {
 
     updateCars(dt, playerSegment, playerW, P);
 
-    let oldIndex = getSegmentIndex(P.position);
+    let oldFraction = (P.position + playerZ) / segmentLength % 1;
+    let oldIndex = getSegmentIndex(P.position + playerZ);
     P.position = Util.increase(P.position, dt * P.speed, g.trackLength);
-    let newIndex = getSegmentIndex(P.position);
+    let newFraction = (P.position + playerZ) / segmentLength % 1;
+    let newIndex = getSegmentIndex(P.position + playerZ);
     
     if (P.keyLeft) {
         P.rotateLevel -= 1;
@@ -377,11 +379,19 @@ function updatePlayer(dt, P) {
     P.playerX += dx * P.rotateLevel / maxRotateLevel;
 
     let nowCentrifugal = (!is_gaming ? 0 : centrifugal);
-    if (P.position != P.oldPosition2) {
-        for(let i = oldIndex + 1; i < newIndex; i++) {
-            P.playerX -= playerSegment.curve * nowCentrifugal;
+
+    if (P.oldPosition2 != P.position) {
+        if (oldIndex == newIndex) {
+            P.playerX -= g.segments[oldIndex].curve * nowCentrifugal * (newFraction - oldFraction);
+        } else {
+            P.playerX -= g.segments[oldIndex].curve * nowCentrifugal * (1 - oldFraction);
+            for(let i = oldIndex + 1; i < newIndex; i++) {
+                P.playerX -= g.segments[i].curve * nowCentrifugal;
+            }
+            P.playerX -= g.segments[newIndex].curve * nowCentrifugal * newFraction;
         }
     }
+
     P.oldPosition2 = P.position;
 
     if (P.keySlower) {
@@ -815,7 +825,6 @@ function drawSpeed(P, x, y) {
     let max_speed = maxSpeed / 100;
     let speed_lv = Math.ceil(speed * 12 / max_speed);
 
-    console.log(x,y);
     R.text(P.ctx, 'KM/H', 220 + x, y, COLORS.TEXT, 50);
     R.text(P.ctx, 'SPEED', x, y, COLORS.TEXT, 50);
 

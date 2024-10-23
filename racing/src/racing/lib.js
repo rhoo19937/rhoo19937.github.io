@@ -40,10 +40,12 @@ let Util = {
 
     increase: function (start, increment, max) {
         let result = start + increment;
-        while (result >= max)
+        while (result >= max) {
             result -= max;
-        while (result < 0)
+        }
+        while (result < 0) {
             result += max;
+        }
         return result;
     },
 
